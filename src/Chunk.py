@@ -1,10 +1,7 @@
-class ChunkData:
+class Chunk:
 
     def __init__(self, coords, blocks=None):
-        # list of Block entities
         self.__blocks = blocks
-        # chunk coords
-
         self.__coords = coords
 
     def get_coords(self):

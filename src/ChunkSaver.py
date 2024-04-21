@@ -14,7 +14,8 @@ class ChunkSaver:
         try:
             line = str(chunk_data.get_coords().get_x()) + "," + str(chunk_data.get_coords().get_y()) + ";"
             for block in blocks:
-                line += str(block.X) + "," + str(block.Y) + "," + str(block.Z) + "," + str(block.get_type()) + ":"
+                line += (str(block.get_x()) + "," + str(block.get_y()) + "," + str(block.get_z()) + "," +
+                         str(block.get_id()) + ":")
             file.write(line + "\n")
         finally:
             file.close()

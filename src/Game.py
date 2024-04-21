@@ -7,6 +7,7 @@ import ChunkCoords
 import Block
 import MovementHandler
 import UserCoords
+import BlockType
 
 
 class Game:
@@ -21,6 +22,7 @@ class Game:
                                                        self.locator)
         self.chunk_data_list = []
         self.__renderDistance = 5
+        self.renderables = [self.chunk_data_list]
 
     def start(self):
         # creates starting chunk for the player to see
@@ -29,6 +31,7 @@ class Game:
 
     def update(self):
         self.culling()
+        # self.render()
         self.update_coords()
         if self.movementHandler.chunk_changed():
             self.update_chunks()
@@ -73,20 +76,20 @@ class Game:
             self.locator.locate(UserCoords.UserCoords(self.player.x, self.player.z)))
 
     def save(self):
-        for chunkData in self.chunk_data_list:
-            if not self.generator.checker.has_been_generated(chunkData.get_coords()):
-                self.generator.saver.save_chunk_data(chunkData)
+        for chunk in self.chunk_data_list:
+            if not self.generator.checker.has_been_generated(chunk.get_coords()):
+                self.generator.saver.save_chunk_data(chunk)
             chunk_data_file = open("ChunkData.txt", "r")
             data = chunk_data_file.readlines()
             line_number = 0
             for i in range(len(data)):
                 x = data[i].split(";")[0].split(",")[0]  # returns the x coordinate of a bit of chunk data from file
                 y = data[i].split(";")[0].split(",")[1]  # returns the y coordinate
-                if (chunkData.get_coords().get_x() == int(x)) and (chunkData.get_coords().get_y() == int(y)):
+                if (chunk.get_coords().get_x() == int(x)) and (chunk.get_coords().get_y() == int(y)):
                     line_number = i
                     break
-            data[line_number] = str(chunkData.get_coords().get_x()) + "," + str(chunkData.get_coords().get_y()) + ";"
-            for block in chunkData.get_blocks():
+            data[line_number] = str(chunk.get_coords().get_x()) + "," + str(chunk.get_coords().get_y()) + ";"
+            for block in chunk.get_blocks():
                 data[line_number] += str(block.X) + "," + str(block.Y) + "," + str(block.Z) + "," + str(
                     block.get_type()) + ":"
             data[line_number] = data[line_number] + "\n"
@@ -131,10 +134,20 @@ class Game:
                 if chunkData.get_coords() == surface_block.get_chunk_coords():
                     block = Block.Block(chunkData.get_coords(),
                                         position=(surface_block.X, surface_block.Y + 1, surface_block.Z),
-                                        block_type='cobble')
+                                        block_id='cobble')
                     chunkData.add_block(block)
 
-    def culling(self):
+    def culling(self, chunk):
         # identifies all non-visible entities (raycasting?)
         # disables entities if they are not already disabled
-        pass
+        for block in chunk.get_blocks():
+            # TODO: Check if each face touches air
+            Entity(model=Plane(subdivisions=(3, 6)), texture=block.get_texture(), position=block.position)
+
+    def render(self):
+        # runs on separate thread
+        for chunk in self.chunk_data_list:
+            self.culling(chunk)
+
+
+
